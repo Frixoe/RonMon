@@ -1,1 +1,1 @@
-rsync -rvp --exclude '.git' --exclude '.git/**' . ubuntu@51.210.223.136:/home/ubuntu/ronmon
+rsync -rvp --exclude '.git' --exclude '.git/**' . ubuntu@46.166.170.246:/home/ubuntu/ronmon

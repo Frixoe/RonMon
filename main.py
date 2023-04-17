@@ -23,7 +23,7 @@ class RonMon:
         except Exception as e:
             self.config = {"vald_url": os.getenv("VALD_URL"),
                            "remote_url": "https://api.roninchain.com/rpc",
-                           "chat_id": -953422664
+                           "chat_id": 123
                           }
             print(f"Error: {e}")
             print("Loading default config...")
@@ -43,8 +43,8 @@ class RonMon:
                 "id": 1
                }
         self.validator_balance_vald = int(self.rpc_call(self.config["vald_url"], data)["result"], 16)
-        # self.validator_balance_remote = []
-        # self.validator_balance_remote = int(self.rpc_call(self.config["remote_url"], data)["result"], 16)
+        self.validator_balance_remote = []
+        self.validator_balance_remote = int(self.rpc_call(self.config["remote_url"], data)["result"], 16)
 
     def get_current_block(self):
         data = {
@@ -75,38 +75,26 @@ class RonMon:
 
     def alerts_BalanceLow(self):
         if self.validator_balance_vald < 150:
-            bot.send_message(self.config["chat_id"], f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}
-                              ''')
-        print(f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}
-                          ''')
+            bot.send_message(self.config["chat_id"], f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}''')
+            print(f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}''')
 
     def alert_BlockNum(self):
         if self.current_block_vald < self.current_block_remote - 5:
-            bot.send_message(self.config["chat_id"], f'''Block Height of Ronin Validator is Lagging\n
-                              Validator Height: {self.current_block_vald}
-                              Remote Node Height: {self.current_block_remote}
-                              ''')
-        print(f'''Block Height of Ronin Validator is Lagging\n
-                          Validator Height: {self.current_block_vald}
-                          Remote Node Height: {self.current_block_remote}
-                          ''')
+            bot.send_message(self.config["chat_id"], f'''Block Height of Ronin Validator is Lagging\nValidator Height: {self.current_block_vald}\nRemote Node Height: {self.current_block_remote}''')
+            print(f'''Block Height of Ronin Validator is Lagging\nValidator Height: {self.current_block_vald}\nRemote Node Height: {self.current_block_remote}''')
 
     def alert_DeficitPeers(self):
         if self.peer_count_vald < 5:
-            bot.send_message(self.config["chat_id"], f'''Ronin Validator Peer Count Below 5
-                              Validator Peers: {self.peer_count_vald}
-                              ''')
-        print(f'''Ronin Validator Peer Count Below 5
-                          Validator Peers: {self.peer_count_vald}
-                          ''')
+            bot.send_message(self.config["chat_id"], f'''Ronin Validator Peer Count Below 5\nValidator Peers: {self.peer_count_vald}''')
+            print(f'''Ronin Validator Peer Count Below 5\nValidator Peers: {self.peer_count_vald}''')
 
     def monitor(self):
         while True:
-            # self.get_peer_count()
-            # self.get_current_block()
+            self.get_peer_count()
+            self.get_current_block()
             self.get_bridge_operator_balance()
-            # self.alert_BlockNum()
-            # self.alert_DeficitPeers()
+            self.alert_BlockNum()
+            self.alert_DeficitPeers()
             self.alerts_BalanceLow()
             time.sleep(sleep_time)
 
