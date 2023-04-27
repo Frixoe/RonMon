@@ -55,7 +55,7 @@ class RonMon:
                 "id": 83
                }
         self.current_block_vald = int(self.rpc_call(self.config["vald_url"], data)["result"], 16)
-        # self.current_block_remote = int(self.rpc_call(self.config["remote_url"], data)["result"], 16)
+        self.current_block_remote = int(self.rpc_call(self.config["remote_url"], data)["result"], 16)
 
     def get_peer_count(self):
         data = {
