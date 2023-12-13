@@ -4,6 +4,7 @@ import os
 import telebot
 import time
 from dotenv import load_dotenv
+from web3 import Web3
 
 load_dotenv()
 
@@ -22,11 +23,37 @@ class RonMon:
                 self.config = json.load(f)
         except Exception as e:
             self.config = {"vald_url": os.getenv("VALD_URL"),
-                           "remote_url": "https://api.roninchain.com/rpc",
-                           "chat_id": 123
+                           "remote_url": "https://ronin.lgns.net/rpc",
+                           "chat_id": -953422664
                           }
             print(f"Error: {e}")
             print("Loading default config...")
+
+
+    def is_in_active_set(self):
+        abi = None
+
+        with open("./abi/ValidatorSet.json", "r") as f:
+            abi = json.loads(f.read())
+
+        contract = None
+
+        w = None
+
+        contract_address = Web3.to_checksum_address("0x617c5d73662282ea7ffd231e020eca6d2b0d552f")
+
+        w = Web3(Web3.HTTPProvider("https://ronin.lgns.net/rpc"))
+
+        contract = w.eth.contract(abi=abi, address=contract_address)
+
+        val_address = Web3.to_checksum_address("0x6aaabf51c5f6d2d93212cf7dad73d67afa0148d0")
+
+        if not w.is_connected():
+            print("RPC not connected!")
+
+        result = contract.functions.isBlockProducer(val_address).call()
+
+        return result
 
     def rpc_call(self, url, data):
         headers = {"Content-Type": "application/json"}
@@ -74,7 +101,7 @@ class RonMon:
         return { current_block: self.current_block_remote, peer_count: self.peer_count_vald, bridge_operator_balance: self.validator_balance_remote }
 
     def alerts_BalanceLow(self):
-        if self.validator_balance_vald < 150:
+        if self.validator_balance_remote < 150:
             bot.send_message(self.config["chat_id"], f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}''')
             print(f'''Ronin Bridge Operator Balance is Low!\nBridge Operator Balance: {self.validator_balance_vald}''')
 
@@ -88,6 +115,11 @@ class RonMon:
             bot.send_message(self.config["chat_id"], f'''Ronin Validator Peer Count Below 5\nValidator Peers: {self.peer_count_vald}''')
             print(f'''Ronin Validator Peer Count Below 5\nValidator Peers: {self.peer_count_vald}''')
 
+    def alert_out_of_active_set(self):
+        if not self.is_in_active_set():
+            bot.send_message(self.config["chat_id"], f'''Ronin Validator Not in Active Set!''')
+            print(f'''Ronin Validator Not in Active Set!''')
+
     def monitor(self):
         while True:
             self.get_peer_count()
@@ -96,6 +128,7 @@ class RonMon:
             self.alert_BlockNum()
             self.alert_DeficitPeers()
             self.alerts_BalanceLow()
+            self.alert_out_of_active_set()
             time.sleep(sleep_time)
 
 
